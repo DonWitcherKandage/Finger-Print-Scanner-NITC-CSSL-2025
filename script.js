@@ -16,9 +16,7 @@ const emittersRoot = (() => document.getElementById('particle-emitters') || (() 
     document.body.appendChild(root);
     return root;
 })())();
-// Connection and performance settings
-const PARTICLE_LINK_DISTANCE = 100; // px
-const PARTICLE_CONNECTION_SAMPLE_LIMIT = 100; // max particles considered for connections
+// Connection and performance settings (unused - particles.js used instead)
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -256,93 +254,7 @@ function destroyEmitter(id) {
 }
 
 // Particle helpers
-function spawnParticles(x, y, count = 10) {
-    for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 1 + Math.random() * 3;
-        particles.push({
-            x: x,
-            y: y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - (Math.random() * 1.2),
-            size: 0.1 + Math.random() * 1,
-            life: 50 + Math.floor(Math.random() * 10),
-            ttl: 40 + Math.floor(Math.random() * 50),
-            hue: 180 + Math.floor(Math.random() * 80)
-        });
-        // avoid growing unbounded
-        if (particles.length > 2500) particles.shift();
-    }
-}
-
-function updateAndDrawParticles() {
-    // Update physics and draw individual particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        // physics
-        p.vy += 0.03; // gravity
-        p.vx *= 0.994; // drag
-        p.vy *= 0.994;
-        p.x += p.vx;
-        p.y += p.vy;
-
-        const alpha = Math.max(0, p.life / p.ttl);
-        c.beginPath();
-        // subtle glow: draw a slightly larger translucent circle behind for softness
-        c.fillStyle = `hsla(${p.hue}, 100%, 60%, ${alpha * 0.12})`;
-        c.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-        c.fill();
-
-        c.beginPath();
-        c.fillStyle = `hsla(${p.hue}, 100%, 60%, ${alpha})`;
-        c.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        c.fill();
-
-        p.life -= 1;
-        if (p.life <= 0) particles.splice(i, 1);
-    }
-
-    // Draw connections (web) between nearby particles
-    const len = particles.length;
-    if (len > 1) {
-        // choose a subset to limit O(n^2) cost when many particles
-        let indices = [];
-        if (len > PARTICLE_CONNECTION_SAMPLE_LIMIT) {
-            // sample last N particles (recent visible ones)
-            for (let i = Math.max(0, len - PARTICLE_CONNECTION_SAMPLE_LIMIT); i < len; i++) indices.push(i);
-        } else {
-            for (let i = 0; i < len; i++) indices.push(i);
-        }
-
-        const maxDist = PARTICLE_LINK_DISTANCE;
-        const maxDistSq = maxDist * maxDist;
-
-        // draw lines between pairs in the chosen index set
-        for (let a = 0; a < indices.length; a++) {
-            const i = indices[a];
-            const p1 = particles[i];
-            for (let b = a + 1; b < indices.length; b++) {
-                const j = indices[b];
-                const p2 = particles[j];
-                const dx = p1.x - p2.x;
-                const dy = p1.y - p2.y;
-                const distSq = dx * dx + dy * dy;
-                if (distSq <= maxDistSq) {
-                    const dist = Math.sqrt(distSq);
-                    const t = 1 - dist / maxDist; // 1 at zero distance, 0 at maxDist
-                    const alphaLine = Math.min(0.9, t * 0.9 * (Math.min(p1.life / p1.ttl, p2.life / p2.ttl)));
-                    const hueAvg = Math.round((p1.hue + p2.hue) / 2);
-                    c.beginPath();
-                    c.strokeStyle = `hsla(${hueAvg}, 100%, 70%, ${alphaLine})`;
-                    c.lineWidth = 0.8 * t;
-                    c.moveTo(p1.x, p1.y);
-                    c.lineTo(p2.x, p2.y);
-                    c.stroke();
-                }
-            }
-        }
-    }
-}
+/* old custom particle system removed — using particles.js emitters instead */
 
 function init() {
     resizeCanvas();
