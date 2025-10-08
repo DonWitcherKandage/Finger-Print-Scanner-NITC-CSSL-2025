@@ -7,7 +7,8 @@
 body {
     margin: 0;
     padding: 0;
-    background: url('HandBcg_png2-01.png') no-repeat center center fixed;
+    left: 10%;
+    background: url('HandBcg_png3-01.png') no-repeat center center fixed;
     background-size: cover;
     height: 100vh;
     display: flex;
@@ -41,7 +42,7 @@ canvas {
     height: 100%;
 }
 
-.info {
+/*.info {
     position: fixed;
     top: 20px;
     left: 50%;
@@ -64,7 +65,7 @@ canvas {
 .info p {
     font-size: 14px;
     opacity: 0.9;
-}
+}*/
 
 .finger-count {
     position: fixed;
@@ -80,6 +81,7 @@ canvas {
 
 .scan-complete {
     position: fixed;
+    align-items: center;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -96,53 +98,3 @@ canvas {
     opacity: 1;
 }
 
-/* Centered rotating asset */
-.rotator {
-    position: fixed;
-    top: 60%;
-    left: 16%;
-    transform: translate(-50%, -50%);
-    z-index: 5; /* behind HUD but above background */
-    pointer-events: none; /* allow interactions through to canvas */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.rotator2 {
-    position: fixed;
-    top: 30%;
-    left: 85%;
-    transform: translate(-50%, -50%);
-    z-index: 5; /* behind HUD but above background */
-    pointer-events: none; /* allow interactions through to canvas */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#asset-4 {
-    width: 400px; /* reasonable default size, adjust as needed */
-    height: auto;
-    transform-origin: 50% 50%; /* rotate around center */
-    animation: slow-rotate 50s linear infinite; /* slow continuous rotation */
-    will-change: transform; /* hint for smoother animation */
-    /*filter: drop-shadow(0 8px 18px rgba(0,0,0,0.35));*/
-    opacity: 100;
-}
-
-
-#asset-3 {
-    width: 500px; /* reasonable default size, adjust as needed */
-    height: auto;
-    transform-origin: 50% 50%; /* rotate around center */
-    animation: slow-rotate 50s linear infinite; /* slow continuous rotation */
-    will-change: transform; /* hint for smoother animation */
-    /*filter: drop-shadow(0 8px 18px rgba(0,0,0,0.35));*/
-    opacity: 100;
-}
-
-@keyframes slow-rotate {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}

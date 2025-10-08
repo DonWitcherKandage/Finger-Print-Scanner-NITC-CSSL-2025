@@ -110,7 +110,7 @@ function loop() {
 
     // Update finger count display
     fingerCountEl.textContent = `${points.length}/5`;
-    fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#00ffff';
+    fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#ffffffff';
 
     // Show scan complete message
     if (points.length === 5) {
