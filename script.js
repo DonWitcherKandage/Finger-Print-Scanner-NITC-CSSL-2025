@@ -7,6 +7,9 @@ let points = [];
 let scanningFingers = {};
 let scanProgress = {};
 
+// whether per-touch emitters are currently active
+let emitting = false;
+
 // particles.js emitter containers mapped by touch identifier
 const emitterContainers = {}; // id -> { el, pJSEntry }
 const emittersRoot = (() => document.getElementById('particle-emitters') || (() => {
@@ -124,18 +127,43 @@ function loop() {
     fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#00ffff';
 
 
-    // Update emitter positions to follow touch points
-    for (let i = 0; i < points.length; i++) {
-        const t = points[i];
-        const id = t.identifier || 0;
-        // ensure emitter exists for this id
-        if (!emitterContainers[id]) {
-            createEmitterForId(id);
+    // Determine whether all five fingers are present and fully scanned
+    let allComplete = false;
+    if (points.length === 5) {
+        allComplete = true;
+        for (let i = 0; i < points.length; i++) {
+            const id = points[i].identifier || 0;
+            if (!scanProgress[id] || scanProgress[id] < 1) {
+                allComplete = false;
+                break;
+            }
         }
-        const emitter = emitterContainers[id];
-        if (emitter && emitter.el) {
-            emitter.el.style.left = `${t.clientX}px`;
-            emitter.el.style.top = `${t.clientY}px`;
+    }
+
+    if (allComplete) {
+        // Start emitters once when all five are complete
+        if (!emitting) {
+            for (let i = 0; i < points.length; i++) {
+                const id = points[i].identifier || 0;
+                if (!emitterContainers[id]) createEmitterForId(id);
+            }
+            emitting = true;
+        }
+        // Update emitter positions to follow finger tips
+        for (let i = 0; i < points.length; i++) {
+            const t = points[i];
+            const id = t.identifier || 0;
+            const emitter = emitterContainers[id];
+            if (emitter && emitter.el) {
+                emitter.el.style.left = `${t.clientX}px`;
+                emitter.el.style.top = `${t.clientY}px`;
+            }
+        }
+    } else {
+        // If not all complete, ensure no emitters are active
+        if (emitting) {
+            for (const id in emitterContainers) destroyEmitter(id);
+            emitting = false;
         }
     }
 
