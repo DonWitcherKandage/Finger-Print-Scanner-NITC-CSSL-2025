@@ -7,11 +7,30 @@
 body {
     margin: 0;
     padding: 0;
+    background: url('HandBcg_png2-01.png') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
     overflow: hidden;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    font-family: 'Arial', sans-serif;
+    /*background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);*/
+    font-family: 'Roboto', sans-serif;
     cursor: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
+
+/*{
+            margin: 0;
+            padding: 0;
+            background: url('HandBcg.webp') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }*/
 
 canvas {
     display: block;

@@ -82,9 +82,8 @@ function loop() {
         resizeCanvas();
     }
 
-    // Clear canvas with slight trail effect
-    c.fillStyle = 'rgba(30, 60, 114, 0.2)';
-    c.fillRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas completely (no trail effect)
+    c.clearRect(0, 0, canvas.width, canvas.height);
 
     // Update scan progress for each finger
     for (let id in scanningFingers) {
