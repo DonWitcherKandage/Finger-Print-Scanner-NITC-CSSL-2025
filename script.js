@@ -16,6 +16,9 @@ const emittersRoot = (() => document.getElementById('particle-emitters') || (() 
     document.body.appendChild(root);
     return root;
 })())();
+// emitter control
+let emittersActive = false;
+const EMITTER_SIZE = 360; // px - larger radius per user request
 // Connection and performance settings (unused - particles.js used instead)
 
 function resizeCanvas() {
@@ -124,18 +127,52 @@ function loop() {
     fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#00ffff';
 
 
-    // Update emitter positions to follow touch points
-    for (let i = 0; i < points.length; i++) {
-        const t = points[i];
-        const id = t.identifier || 0;
-        // ensure emitter exists for this id
-        if (!emitterContainers[id]) {
-            createEmitterForId(id);
+    // Check if all five fingers present and fully scanned
+    let allComplete = false;
+    if (points.length === 5) {
+        allComplete = true;
+        for (let i = 0; i < points.length; i++) {
+            const id = points[i].identifier || 0;
+            if (!scanProgress[id] || scanProgress[id] < 1) {
+                allComplete = false;
+                break;
+            }
         }
-        const emitter = emitterContainers[id];
-        if (emitter && emitter.el) {
-            emitter.el.style.left = `${t.clientX}px`;
-            emitter.el.style.top = `${t.clientY}px`;
+    }
+
+    // Activate emitters once (rising edge) when all five fingers complete
+    if (allComplete && !emittersActive) {
+        for (let i = 0; i < points.length; i++) {
+            const t = points[i];
+            const id = t.identifier || 0;
+            createEmitterForId(id);
+            const emitter = emitterContainers[id];
+            if (emitter && emitter.el) {
+                emitter.el.style.left = `${t.clientX}px`;
+                emitter.el.style.top = `${t.clientY}px`;
+            }
+        }
+        emittersActive = true;
+    }
+
+    // Deactivate emitters if condition fails (fingers lifted or progress reset)
+    if (!allComplete && emittersActive) {
+        for (const id in emitterContainers) {
+            destroyEmitter(id);
+        }
+        emittersActive = false;
+    }
+
+    // If emitters are active, keep them positioned on the current points
+    if (emittersActive) {
+        for (let i = 0; i < points.length; i++) {
+            const t = points[i];
+            const id = t.identifier || 0;
+            const emitter = emitterContainers[id];
+            if (emitter && emitter.el) {
+                emitter.el.style.left = `${t.clientX}px`;
+                emitter.el.style.top = `${t.clientY}px`;
+            }
         }
     }
 
@@ -194,8 +231,8 @@ function createEmitterForId(id) {
     container.style.position = 'absolute';
     container.style.left = '0px';
     container.style.top = '0px';
-    container.style.width = '220px';
-    container.style.height = '220px';
+    container.style.width = EMITTER_SIZE + 'px';
+    container.style.height = EMITTER_SIZE + 'px';
     container.style.pointerEvents = 'none';
     container.style.transform = 'translate(-50%, -50%)';
     emittersRoot.appendChild(container);
@@ -207,13 +244,13 @@ function createEmitterForId(id) {
     // particles.js config: small particles with line connections
     const cfg = {
         particles: {
-            number: { value: 40, density: { enable: false } },
+            number: { value: 30, density: { enable: false } },
             color: { value: '#9ff' },
             shape: { type: 'circle' },
-            opacity: { value: 0.8, anim: { enable: false } },
-            size: { value: 2, random: true },
-            line_linked: { enable: true, distance: 80, color: '#9ff', opacity: 0.5, width: 1 },
-            move: { enable: true, speed: 2.5, direction: 'none', out_mode: 'out' }
+            opacity: { value: 0.9, anim: { enable: false } },
+            size: { value: 3.5, random: true },
+            line_linked: { enable: true, distance: Math.floor(EMITTER_SIZE * 0.25), color: '#9ff', opacity: 0.55, width: 1.2 },
+            move: { enable: true, speed: 0.9, direction: 'none', out_mode: 'out' }
         },
         interactivity: { detect_on: 'canvas', events: { onhover: { enable: false }, onclick: { enable: false } } },
         retina_detect: true
