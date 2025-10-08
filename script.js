@@ -9,7 +9,52 @@ let scanProgress = {};
 // pointer image for finger markers
 const pointerImg = new Image();
 pointerImg.src = 'Images/Asset 3.png';
+// natural size and visible-center of the PNG (computed onload)
+let pointerNatural = { w: 0, h: 0 };
+let pointerVisibleCenter = { x: 0, y: 0 };
 const pointerAngles = {}; // id -> angle radians
+
+// When the image loads, compute the bounding box of non-transparent pixels
+pointerImg.addEventListener('load', () => {
+    pointerNatural.w = pointerImg.naturalWidth || pointerImg.width;
+    pointerNatural.h = pointerImg.naturalHeight || pointerImg.height;
+    try {
+        const off = document.createElement('canvas');
+        off.width = pointerNatural.w;
+        off.height = pointerNatural.h;
+        const oc = off.getContext('2d');
+        oc.clearRect(0, 0, off.width, off.height);
+        oc.drawImage(pointerImg, 0, 0);
+        const data = oc.getImageData(0, 0, off.width, off.height).data;
+        let minX = off.width, minY = off.height, maxX = 0, maxY = 0;
+        let found = false;
+        for (let y = 0; y < off.height; y++) {
+            for (let x = 0; x < off.width; x++) {
+                const i = (y * off.width + x) * 4 + 3; // alpha channel
+                const a = data[i];
+                if (a > 10) { // threshold
+                    found = true;
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+        if (found) {
+            pointerVisibleCenter.x = (minX + maxX) / 2;
+            pointerVisibleCenter.y = (minY + maxY) / 2;
+        } else {
+            // fallback to geometric center
+            pointerVisibleCenter.x = pointerNatural.w / 2;
+            pointerVisibleCenter.y = pointerNatural.h / 2;
+        }
+    } catch (err) {
+        // reading image data can fail in some browser security contexts; fallback to center
+        pointerVisibleCenter.x = pointerImg.width / 2;
+        pointerVisibleCenter.y = pointerImg.height / 2;
+    }
+});
 
 // particles.js emitter containers mapped by touch identifier
 const emitterContainers = {}; // id -> { el, pJSEntry }
@@ -55,8 +100,20 @@ function loop() {
         const touch = points[i];
         const identifier = touch.identifier || 0;
         const angle = pointerAngles[identifier] || 0;
-        if (pointerImg.complete) {
-            const size = 64; // image display size
+        if (pointerImg.complete && pointerNatural.w > 0) {
+            const size = 64; // image display size (square)
+            const scale = size / pointerNatural.w;
+            // compute scaled visual-center and draw so that the visual center maps to (0,0)
+            const scaledCx = pointerVisibleCenter.x * scale;
+            const scaledCy = pointerVisibleCenter.y * scale;
+            c.save();
+            c.translate(touch.clientX, touch.clientY);
+            c.rotate(angle);
+            c.drawImage(pointerImg, -scaledCx, -scaledCy, size, size);
+            c.restore();
+        } else if (pointerImg.complete) {
+            // fallback: center the image
+            const size = 64;
             c.save();
             c.translate(touch.clientX, touch.clientY);
             c.rotate(angle);
