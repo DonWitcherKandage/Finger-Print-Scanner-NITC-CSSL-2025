@@ -6,8 +6,16 @@ const scanCompleteEl = document.getElementById('scanComplete');
 let points = [];
 let scanningFingers = {};
 let scanProgress = {};
-// Particle system state
-let particles = [];
+
+// particles.js emitter containers mapped by touch identifier
+const emitterContainers = {}; // id -> { el, pJSEntry }
+const emittersRoot = (() => document.getElementById('particle-emitters') || (() => {
+    const root = document.createElement('div');
+    root.id = 'particle-emitters';
+    root.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(root);
+    return root;
+})())();
 // Connection and performance settings
 const PARTICLE_LINK_DISTANCE = 100; // px
 const PARTICLE_CONNECTION_SAMPLE_LIMIT = 100; // max particles considered for connections
@@ -117,21 +125,24 @@ function loop() {
     fingerCountEl.textContent = `${points.length}/5`;
     fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#00ffff';
 
-    // Emit particles continuously from each touch point while present
+
+    // Update emitter positions to follow touch points
     for (let i = 0; i < points.length; i++) {
         const t = points[i];
         const id = t.identifier || 0;
-        const progress = scanProgress[id] || 0;
-        // spawn 1-3 particles per frame depending on progress (more as scan nears completion)
-        const spawnCount = 1 + Math.floor(progress * 1);
-        spawnParticles(t.clientX, t.clientY, spawnCount);
+        // ensure emitter exists for this id
+        if (!emitterContainers[id]) {
+            createEmitterForId(id);
+        }
+        const emitter = emitterContainers[id];
+        if (emitter && emitter.el) {
+            emitter.el.style.left = `${t.clientX}px`;
+            emitter.el.style.top = `${t.clientY}px`;
+        }
     }
 
-    // keep scan-complete overlay hidden - particles serve as feedback
+    // Keep scan-complete overlay hidden — particles serve as feedback
     scanCompleteEl.classList.remove('active');
-
-    // Update and draw particles
-    updateAndDrawParticles();
 
     requestAnimationFrame(loop);
 }
@@ -153,6 +164,10 @@ function positionHandler(e) {
             if (!currentIds[id]) {
                 delete scanningFingers[id];
                 delete scanProgress[id];
+                // destroy emitter for this id if exists
+                if (emitterContainers[id]) {
+                    destroyEmitter(id);
+                }
             }
         }
         
@@ -168,7 +183,76 @@ function clearHandler(e) {
     points = [];
     scanningFingers = {};
     scanProgress = {};
-    particles = [];
+    // destroy all emitters
+    for (const id in emitterContainers) {
+        destroyEmitter(id);
+    }
+}
+
+function createEmitterForId(id) {
+    // create container
+    const container = document.createElement('div');
+    container.className = 'emitter-container';
+    container.style.position = 'absolute';
+    container.style.left = '0px';
+    container.style.top = '0px';
+    container.style.width = '220px';
+    container.style.height = '220px';
+    container.style.pointerEvents = 'none';
+    container.style.transform = 'translate(-50%, -50%)';
+    emittersRoot.appendChild(container);
+
+    // unique DOM id for particles.js
+    const domId = `pjs-emitter-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    container.id = domId;
+
+    // particles.js config: small particles with line connections
+    const cfg = {
+        particles: {
+            number: { value: 40, density: { enable: false } },
+            color: { value: '#9ff' },
+            shape: { type: 'circle' },
+            opacity: { value: 0.8, anim: { enable: false } },
+            size: { value: 2, random: true },
+            line_linked: { enable: true, distance: 80, color: '#9ff', opacity: 0.5, width: 1 },
+            move: { enable: true, speed: 2.5, direction: 'none', out_mode: 'out' }
+        },
+        interactivity: { detect_on: 'canvas', events: { onhover: { enable: false }, onclick: { enable: false } } },
+        retina_detect: true
+    };
+
+    // initialize particles.js instance on this container
+    /* global particlesJS */
+    try {
+        particlesJS(domId, cfg);
+        emitterContainers[id] = { el: container, domId };
+    } catch (err) {
+        // fallback: just keep container but no pjs instance
+        console.warn('particles.js init failed for emitter', id, err);
+        emitterContainers[id] = { el: container, domId: null };
+    }
+}
+
+function destroyEmitter(id) {
+    const e = emitterContainers[id];
+    if (!e) return;
+    try {
+        // particles.js attaches a window.pJSDom entry we can remove
+        if (e.domId && window.pJSDom) {
+            for (let i = window.pJSDom.length - 1; i >= 0; i--) {
+                if (window.pJSDom[i].pJS && window.pJSDom[i].pJS.canvas && window.pJSDom[i].pJS.canvas.el.id === e.domId) {
+                    window.pJSDom[i].pJS.fn.vendors.destroypJS();
+                    window.pJSDom.splice(i, 1);
+                    break;
+                }
+            }
+        }
+    } catch (err) {
+        // ignore
+    }
+    // remove element
+    if (e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el);
+    delete emitterContainers[id];
 }
 
 // Particle helpers

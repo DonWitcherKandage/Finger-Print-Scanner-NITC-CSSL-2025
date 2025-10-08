@@ -98,3 +98,22 @@ canvas {
     opacity: 1;
 }
 
+/* Particles.js emitters root */
+#particle-emitters {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 6; /* above canvas but below HUD if needed */
+}
+
+.emitter-container {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
