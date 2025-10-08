@@ -6,6 +6,10 @@ const scanCompleteEl = document.getElementById('scanComplete');
 let points = [];
 let scanningFingers = {};
 let scanProgress = {};
+// pointer image for finger markers
+const pointerImg = new Image();
+pointerImg.src = 'Images/Asset 3.png';
+const pointerAngles = {}; // id -> angle radians
 
 // particles.js emitter containers mapped by touch identifier
 const emitterContainers = {}; // id -> { el, pJSEntry }
@@ -25,71 +29,10 @@ function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
+//
 
-// Fingerprint pattern SVG path data (simplified version)
-function drawFingerprint(x, y, radius, progress, identifier) {
-    const lines = 8;
-    const maxRadius = radius;
-    
-    c.save();
-    c.translate(x, y);
-    
-    // Draw concentric fingerprint lines
-    for (let i = 0; i < lines; i++) {
-        const r = (maxRadius / lines) * (i + 1);
-        const lineProgress = Math.max(0, Math.min(1, (progress * lines - i)));
-        
-        if (lineProgress > 0) {
-            c.beginPath();
-            c.arc(0, 0, r, 0, Math.PI * 2 * lineProgress);
-            
-            // Gradient effect
-            const gradient = c.createRadialGradient(0, 0, 0, 0, 0, r);
-            gradient.addColorStop(0, `rgba(0, 255, 255, ${0.8 * lineProgress})`);
-            gradient.addColorStop(1, `rgba(0, 150, 255, ${0.4 * lineProgress})`);
-            
-            c.strokeStyle = gradient;
-            c.lineWidth = 3;
-            c.stroke();
-        }
-    }
-    
-    // Add some characteristic fingerprint curves
-    if (progress > 0.3) {
-        const curves = 3;
-        for (let i = 0; i < curves; i++) {
-            const angle = (Math.PI * 2 / curves) * i;
-            const curveProgress = Math.max(0, Math.min(1, (progress - 0.3) * 2));
-            
-            c.beginPath();
-            c.arc(
-                Math.cos(angle) * maxRadius * 0.3,
-                Math.sin(angle) * maxRadius * 0.3,
-                maxRadius * 0.4,
-                angle,
-                angle + Math.PI * curveProgress
-            );
-            c.strokeStyle = `rgba(0, 255, 255, ${0.6 * curveProgress})`;
-            c.lineWidth = 2;
-            c.stroke();
-        }
-    }
-    
-    // Outer glow
-    if (progress > 0.8) {
-        c.beginPath();
-        c.arc(0, 0, maxRadius + 10, 0, Math.PI * 2);
-        const glowGradient = c.createRadialGradient(0, 0, maxRadius, 0, 0, maxRadius + 20);
-        glowGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-        glowGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
-        c.strokeStyle = glowGradient;
-        c.lineWidth = 10;
-        c.stroke();
-    }
-    
-    c.restore();
-}
-
+// Removed fingerprint line drawing — only rotating pointer image will be drawn now.
+//
 function loop() {
     // Handle canvas resize
     if (canvas.height !== window.innerHeight || canvas.width !== window.innerWidth) {
@@ -107,19 +50,21 @@ function loop() {
         scanProgress[id] = Math.min(1, scanProgress[id] + 0.03);
     }
 
-    // Draw fingerprints for each touch point
+    // Draw rotating pointer image for each touch point (no fingerprint lines)
     for (let i = 0; i < points.length; i++) {
         const touch = points[i];
         const identifier = touch.identifier || 0;
-        const progress = scanProgress[identifier] || 0;
-        
-        drawFingerprint(touch.clientX, touch.clientY, 60, progress, identifier);
-        
-        // Draw finger number
-        c.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        c.font = 'bold 16px Arial';
-        c.textAlign = 'center';
-        c.fillText(`F${i + 1}`, touch.clientX, touch.clientY - 80);
+        const angle = pointerAngles[identifier] || 0;
+        if (pointerImg.complete) {
+            const size = 64; // image display size
+            c.save();
+            c.translate(touch.clientX, touch.clientY);
+            c.rotate(angle);
+            c.drawImage(pointerImg, -size / 2, -size / 2, size, size);
+            c.restore();
+        }
+        // increment angle slowly
+        pointerAngles[identifier] = (pointerAngles[identifier] || 0) + 0.02;
     }
 
     // Update finger count display
@@ -192,6 +137,7 @@ function positionHandler(e) {
             const id = e.touches[i].identifier;
             currentIds[id] = true;
             scanningFingers[id] = true;
+            if (pointerAngles[id] === undefined) pointerAngles[id] = Math.random() * Math.PI * 2;
         }
         
         // Remove fingers that are no longer touching
@@ -203,6 +149,8 @@ function positionHandler(e) {
                 if (emitterContainers[id]) {
                     destroyEmitter(id);
                 }
+                // cleanup pointer angle
+                if (pointerAngles[id] !== undefined) delete pointerAngles[id];
             }
         }
         
@@ -222,6 +170,8 @@ function clearHandler(e) {
     for (const id in emitterContainers) {
         destroyEmitter(id);
     }
+    // cleanup pointer angles
+    for (const k in pointerAngles) delete pointerAngles[k];
 }
 
 function createEmitterForId(id) {
