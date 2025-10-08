@@ -7,9 +7,6 @@ let points = [];
 let scanningFingers = {};
 let scanProgress = {};
 
-// whether per-touch emitters are currently active
-let emitting = false;
-
 // particles.js emitter containers mapped by touch identifier
 const emitterContainers = {}; // id -> { el, pJSEntry }
 const emittersRoot = (() => document.getElementById('particle-emitters') || (() => {
@@ -127,43 +124,18 @@ function loop() {
     fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#00ffff';
 
 
-    // Determine whether all five fingers are present and fully scanned
-    let allComplete = false;
-    if (points.length === 5) {
-        allComplete = true;
-        for (let i = 0; i < points.length; i++) {
-            const id = points[i].identifier || 0;
-            if (!scanProgress[id] || scanProgress[id] < 1) {
-                allComplete = false;
-                break;
-            }
+    // Update emitter positions to follow touch points
+    for (let i = 0; i < points.length; i++) {
+        const t = points[i];
+        const id = t.identifier || 0;
+        // ensure emitter exists for this id
+        if (!emitterContainers[id]) {
+            createEmitterForId(id);
         }
-    }
-
-    if (allComplete) {
-        // Start emitters once when all five are complete
-        if (!emitting) {
-            for (let i = 0; i < points.length; i++) {
-                const id = points[i].identifier || 0;
-                if (!emitterContainers[id]) createEmitterForId(id);
-            }
-            emitting = true;
-        }
-        // Update emitter positions to follow finger tips
-        for (let i = 0; i < points.length; i++) {
-            const t = points[i];
-            const id = t.identifier || 0;
-            const emitter = emitterContainers[id];
-            if (emitter && emitter.el) {
-                emitter.el.style.left = `${t.clientX}px`;
-                emitter.el.style.top = `${t.clientY}px`;
-            }
-        }
-    } else {
-        // If not all complete, ensure no emitters are active
-        if (emitting) {
-            for (const id in emitterContainers) destroyEmitter(id);
-            emitting = false;
+        const emitter = emitterContainers[id];
+        if (emitter && emitter.el) {
+            emitter.el.style.left = `${t.clientX}px`;
+            emitter.el.style.top = `${t.clientY}px`;
         }
     }
 
@@ -235,14 +207,13 @@ function createEmitterForId(id) {
     // particles.js config: small particles with line connections
     const cfg = {
         particles: {
-            // start small and slow; we'll animate these properties to create a smooth "ease in" effect
-            number: { value: 10, density: { enable: false } },
+            number: { value: 40, density: { enable: false } },
             color: { value: '#9ff' },
             shape: { type: 'circle' },
-            opacity: { value: 0.0, anim: { enable: true, speed: 1, opacity_min: 0.2, sync: false } },
-            size: { value: 1.5, random: true },
-            line_linked: { enable: true, distance: 20, color: '#9ff', opacity: 0.0, width: 1 },
-            move: { enable: true, speed: 0.3, direction: 'none', out_mode: 'out' }
+            opacity: { value: 0.8, anim: { enable: false } },
+            size: { value: 2, random: true },
+            line_linked: { enable: true, distance: 80, color: '#9ff', opacity: 0.5, width: 1 },
+            move: { enable: true, speed: 2.5, direction: 'none', out_mode: 'out' }
         },
         interactivity: { detect_on: 'canvas', events: { onhover: { enable: false }, onclick: { enable: false } } },
         retina_detect: true
@@ -252,81 +223,12 @@ function createEmitterForId(id) {
     /* global particlesJS */
     try {
         particlesJS(domId, cfg);
-        // store and attempt to find the created pJS instance
-        let pjsInstance = null;
-        if (window.pJSDom && window.pJSDom.length) {
-            for (let i = 0; i < window.pJSDom.length; i++) {
-                const pdom = window.pJSDom[i];
-                if (pdom && pdom.pJS && pdom.pJS.canvas && pdom.pJS.canvas.el && pdom.pJS.canvas.el.id === domId) {
-                    pjsInstance = pdom.pJS;
-                    break;
-                }
-            }
-        }
-        emitterContainers[id] = { el: container, domId, pJS: pjsInstance, growthRaf: null };
-
-        // Fade in container smoothly
-        container.style.opacity = '0';
-        container.style.transition = 'opacity 700ms ease-out, transform 700ms ease-out';
-        // force reflow then set to visible
-        requestAnimationFrame(() => {
-            container.style.opacity = '1';
-            container.style.transform = 'translate(-50%, -50%) scale(1)';
-        });
-
-        // animate pJS parameters (speed, link distance, opacity) to create gradual spread
-        if (pjsInstance) animateEmitterGrowth(id, pjsInstance);
+        emitterContainers[id] = { el: container, domId };
     } catch (err) {
         // fallback: just keep container but no pjs instance
         console.warn('particles.js init failed for emitter', id, err);
-        emitterContainers[id] = { el: container, domId: null, pJS: null, growthRaf: null };
+        emitterContainers[id] = { el: container, domId: null };
     }
-}
-
-// Gradually increase move.speed, line_linked.distance and opacity in the particles.js instance
-function animateEmitterGrowth(id, pjsInstance) {
-    const duration = 1400; // ms
-    const start = performance.now();
-
-    // initial and target values
-    const initSpeed = pjsInstance.particles.move.speed || 0.3;
-    const targetSpeed = 2.2;
-    const initLink = (pjsInstance.particles.line_linked && pjsInstance.particles.line_linked.distance) || 20;
-    const targetLink = 90;
-    const initOpacity = (pjsInstance.particles.opacity && pjsInstance.particles.opacity.value) || 0.0;
-    const targetOpacity = 0.8;
-
-    function step(now) {
-        const t = Math.min(1, (now - start) / duration);
-        const ease = 1 - Math.pow(1 - t, 3); // easeOutCubic-like
-
-        // interpolate
-        const speed = initSpeed + (targetSpeed - initSpeed) * ease;
-        const link = initLink + (targetLink - initLink) * ease;
-        const opacity = initOpacity + (targetOpacity - initOpacity) * ease;
-
-        try {
-            if (pjsInstance && pjsInstance.particles) {
-                pjsInstance.particles.move.speed = speed;
-                if (pjsInstance.particles.line_linked) pjsInstance.particles.line_linked.distance = link;
-                if (pjsInstance.particles.opacity) pjsInstance.particles.opacity.value = opacity;
-                // also update the color alpha for links if present
-                if (pjsInstance.particles.line_linked) pjsInstance.particles.line_linked.opacity = Math.min(0.7, opacity * 0.7);
-            }
-        } catch (e) {
-            // ignore
-        }
-
-        // keep requestAnimationFrame id to allow cancellation on destroy
-        const entry = emitterContainers[id];
-        if (t < 1 && entry) {
-            entry.growthRaf = requestAnimationFrame(step);
-        } else if (entry) {
-            entry.growthRaf = null;
-        }
-    }
-
-    emitterContainers[id].growthRaf = requestAnimationFrame(step);
 }
 
 function destroyEmitter(id) {
@@ -346,26 +248,8 @@ function destroyEmitter(id) {
     } catch (err) {
         // ignore
     }
-    // cancel growth animation if running
-    if (e.growthRaf) {
-        cancelAnimationFrame(e.growthRaf);
-        e.growthRaf = null;
-    }
-
-    // fade out then remove element
-    if (e.el) {
-        try {
-            e.el.style.transition = 'opacity 500ms ease-out, transform 500ms ease-out';
-            e.el.style.opacity = '0';
-            e.el.style.transform = 'translate(-50%, -50%) scale(0.9)';
-            setTimeout(() => {
-                if (e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el);
-            }, 500);
-        } catch (err) {
-            if (e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el);
-        }
-    }
-
+    // remove element
+    if (e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el);
     delete emitterContainers[id];
 }
 
