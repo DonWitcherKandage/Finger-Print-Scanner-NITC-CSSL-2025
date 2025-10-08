@@ -85,10 +85,10 @@ canvas {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #00ff00;
+    color: #649be8;
     font-size: 36px;
     font-weight: bold;
-    text-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
     z-index: 10;
     opacity: 0;
     transition: opacity 0.5s;
@@ -173,6 +173,29 @@ canvas {
 @keyframes ripple-grow {
     to {
         transform: translate(-50%, -50%) scale(12);
+        opacity: 0;
+    }
+}
+
+/* Full viewport ripple */
+.ripple-full {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(110, 243, 255, 0.95); /* light green */
+    transform: translate(-50%, -50%) scale(0.6);
+    pointer-events: none;
+    z-index: 120; /* above preload and button */
+    animation: ripple-full 900ms ease-out forwards;
+    box-shadow: 0 0 120px rgba(255, 255, 255, 0.45);
+}
+
+@keyframes ripple-full {
+    to {
+        transform: translate(-50%, -50%) scale(120);
         opacity: 0;
     }
 }

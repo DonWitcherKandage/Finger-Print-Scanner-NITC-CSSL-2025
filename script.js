@@ -314,20 +314,15 @@ function startApp() {
     const preload = document.getElementById('preloadBg');
     // create ripple at button center
     if (btn) {
-        const rect = btn.getBoundingClientRect();
+        // full viewport ripple
         const ripple = document.createElement('div');
-        ripple.className = 'ripple';
-        // place at center
-        ripple.style.left = `${rect.width / 2}px`;
-        ripple.style.top = `${rect.height / 2}px`;
-        btn.appendChild(ripple);
-        // remove ripple after animation
-        setTimeout(() => { if (ripple && ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 900);
-        // add hidden class to both preload bg and button so they fade together
+        ripple.className = 'ripple-full';
+        document.body.appendChild(ripple);
+        // fade out preload and button together
         if (preload) preload.classList.add('hidden');
         btn.classList.add('hidden');
-        // remove elements from DOM after transitions
-        setTimeout(() => { if (preload && preload.parentNode) preload.parentNode.removeChild(preload); if (btn && btn.parentNode) btn.parentNode.removeChild(btn); }, 820);
+        // cleanup after animation
+        setTimeout(() => { if (ripple && ripple.parentNode) ripple.parentNode.removeChild(ripple); if (preload && preload.parentNode) preload.parentNode.removeChild(preload); if (btn && btn.parentNode) btn.parentNode.removeChild(btn); }, 950);
     } else {
         if (preload) preload.classList.add('hidden');
     }
