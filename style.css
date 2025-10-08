@@ -95,3 +95,54 @@ canvas {
 .scan-complete.active {
     opacity: 1;
 }
+
+/* Centered rotating asset */
+.rotator {
+    position: fixed;
+    top: 50%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+    z-index: 5; /* behind HUD but above background */
+    pointer-events: none; /* allow interactions through to canvas */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rotator2 {
+    position: fixed;
+    top: 50%;
+    left: 80%;
+    transform: translate(-50%, -50%);
+    z-index: 5; /* behind HUD but above background */
+    pointer-events: none; /* allow interactions through to canvas */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#asset-4 {
+    width: 500px; /* reasonable default size, adjust as needed */
+    height: auto;
+    transform-origin: 50% 50%; /* rotate around center */
+    animation: slow-rotate 50s linear infinite; /* slow continuous rotation */
+    will-change: transform; /* hint for smoother animation */
+    /*filter: drop-shadow(0 8px 18px rgba(0,0,0,0.35));*/
+    opacity: 0.5;
+}
+
+
+#asset-3 {
+    width: 500px; /* reasonable default size, adjust as needed */
+    height: auto;
+    transform-origin: 50% 50%; /* rotate around center */
+    animation: slow-rotate 50s linear infinite; /* slow continuous rotation */
+    will-change: transform; /* hint for smoother animation */
+    /*filter: drop-shadow(0 8px 18px rgba(0,0,0,0.35));*/
+    opacity: 0.5;
+}
+
+@keyframes slow-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
