@@ -68,6 +68,7 @@ const emittersRoot = (() => document.getElementById('particle-emitters') || (() 
 // emitter control
 let emittersActive = false;
 const EMITTER_SIZE = 360; // px - larger radius per user request
+let screenGlowTimeout = null;
 // Connection and performance settings (unused - particles.js used instead)
 
 function resizeCanvas() {
@@ -155,6 +156,12 @@ function loop() {
             }
         }
         emittersActive = true;
+        // schedule screen glow a short time after particles appear
+        if (screenGlowTimeout) clearTimeout(screenGlowTimeout);
+        screenGlowTimeout = setTimeout(() => {
+            const glow = document.getElementById('screenGlow');
+            if (glow) glow.classList.add('active');
+        }, 300);
     }
 
     // Deactivate emitters if condition fails (fingers lifted or progress reset)
@@ -163,6 +170,10 @@ function loop() {
             destroyEmitter(id);
         }
         emittersActive = false;
+        // remove screen glow immediately
+        if (screenGlowTimeout) { clearTimeout(screenGlowTimeout); screenGlowTimeout = null; }
+        const glow = document.getElementById('screenGlow');
+        if (glow) glow.classList.remove('active');
     }
 
     // If emitters are active, keep them positioned on the current points
