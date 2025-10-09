@@ -68,8 +68,6 @@ const emittersRoot = (() => document.getElementById('particle-emitters') || (() 
 // emitter control
 let emittersActive = false;
 const EMITTER_SIZE = 360; // px - larger radius per user request
-let screenGlowTimeout = null;
-let emittersPendingTimeout = null;
 // Connection and performance settings (unused - particles.js used instead)
 
 function resizeCanvas() {
@@ -144,47 +142,27 @@ function loop() {
         }
     }
 
-    // If user touches at least one finger, schedule emitters after 600ms (rising edge)
-    // Cancel pending schedule if touches stop before the timeout.
-    if (emittersPendingTimeout && points.length === 0) {
-        clearTimeout(emittersPendingTimeout);
-        emittersPendingTimeout = null;
-    }
-
-    if (points.length >= 1 && !emittersActive && !emittersPendingTimeout) {
-        emittersPendingTimeout = setTimeout(() => {
-            // create emitters for currently active touch points
-            for (let i = 0; i < points.length; i++) {
-                const t = points[i];
-                const id = t.identifier || 0;
-                createEmitterForId(id);
-                const emitter = emitterContainers[id];
-                if (emitter && emitter.el) {
-                    emitter.el.style.left = `${t.clientX}px`;
-                    emitter.el.style.top = `${t.clientY}px`;
-                }
+    // Activate emitters once (rising edge) when all five fingers complete
+    if (allComplete && !emittersActive) {
+        for (let i = 0; i < points.length; i++) {
+            const t = points[i];
+            const id = t.identifier || 0;
+            createEmitterForId(id);
+            const emitter = emitterContainers[id];
+            if (emitter && emitter.el) {
+                emitter.el.style.left = `${t.clientX}px`;
+                emitter.el.style.top = `${t.clientY}px`;
             }
-            emittersActive = true;
-            emittersPendingTimeout = null;
-            // schedule screen glow a short time after particles appear
-            if (screenGlowTimeout) clearTimeout(screenGlowTimeout);
-            screenGlowTimeout = setTimeout(() => {
-                const glow = document.getElementById('screenGlow');
-                if (glow) glow.classList.add('active');
-            }, 300);
-        }, 600);
+        }
+        emittersActive = true;
     }
 
-    // Deactivate emitters when all touches are lifted
-    if (points.length === 0 && emittersActive) {
+    // Deactivate emitters if condition fails (fingers lifted or progress reset)
+    if (!allComplete && emittersActive) {
         for (const id in emitterContainers) {
             destroyEmitter(id);
         }
         emittersActive = false;
-        // remove screen glow immediately
-        if (screenGlowTimeout) { clearTimeout(screenGlowTimeout); screenGlowTimeout = null; }
-        const glow = document.getElementById('screenGlow');
-        if (glow) glow.classList.remove('active');
     }
 
     // If emitters are active, keep them positioned on the current points
