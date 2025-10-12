@@ -230,8 +230,9 @@ function positionHandler(e) {
             if (!currentIds[id]) {
                 delete scanningFingers[id];
                 delete scanProgress[id];
-                // destroy emitter for this id if exists
-                if (emitterContainers[id]) {
+                // Only destroy emitter if scan is not complete
+                // This preserves particles after 5-finger scan completion
+                if (emitterContainers[id] && !scanCompleteEl.classList.contains('visible')) {
                     destroyEmitter(id);
                 }
                 // cleanup pointer angle
