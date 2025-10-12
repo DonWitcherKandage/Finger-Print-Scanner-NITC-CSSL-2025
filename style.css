@@ -114,7 +114,7 @@ canvas {
         rgba(0, 200, 255, 0.7) 40%, 
         rgba(100, 200, 255, 0.5) 60%, 
         rgba(0, 150, 255, 0.3) 80%, 
-        transparent 100%);
+        transparent 10%);
     box-shadow: 
         0 0 200px rgba(255, 255, 255, 1),
         0 0 400px rgba(0, 255, 255, 0.8),
