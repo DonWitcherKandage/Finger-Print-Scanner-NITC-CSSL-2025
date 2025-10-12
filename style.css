@@ -74,7 +74,7 @@ canvas {
     left: 50%;
     transform: translateX(-50%);
     color: #00ffff;
-    font-size: 48px;
+    font-size: clamp(32px, 6vw, 48px);
     font-weight: bold;
     text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
     z-index: 10;
@@ -87,7 +87,7 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
     color: #649be8;
-    font-size: 36px;
+    font-size: clamp(24px, 5vw, 36px);
     font-weight: bold;
     text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
     z-index: 10;
@@ -125,7 +125,7 @@ canvas {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 500px;
+    width: min(400px, 80vw);
     height: auto;
     border-radius: 50%;
     /*background: radial-gradient(circle at 30% 30%, #00ffff, #0077aa);*/
@@ -260,8 +260,14 @@ canvas {
 }
 
 @keyframes circle-size {
-    from { width: 250px; height: 250px; }
-    to   { width: 300px; height: 300px; }
+    from { 
+        width: min(250px, 60vw); 
+        height: min(250px, 60vw); 
+    }
+    to { 
+        width: min(300px, 70vw); 
+        height: min(300px, 70vw); 
+    }
 }
 
 @keyframes shadow-rotate {
@@ -273,6 +279,134 @@ canvas {
     to {
         transform: translate(-50%, -50%) scale(120);
         opacity: 0;
+    }
+}
+
+/* .mic component styles for the animated button */
+.mic {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    width: min(400px, 80vw);
+    height: min(400px, 80vw);
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    pointer-events: auto;
+}
+
+.mic::before,
+.mic::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 100%;
+    z-index: 2;
+    box-shadow: 0 0 20px 20px #1c084f;
+}
+
+.mic::before {
+    width: min(400px, 80vw);
+    height: min(400px, 80vw);
+    background-color: #1a084e;
+    animation: shadow-rotate 1.5s linear infinite;
+}
+
+.mic::after {
+    width: min(250px, 60vw);
+    height: min(250px, 60vw);
+    background-color: #2f1e5f;
+    animation: circle-size 0.8s linear infinite alternate;
+}
+
+.mic-icon {
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+}
+
+.mic-icon img {
+    width: auto;
+    max-width: 62%;
+    max-height: 62%;
+    object-fit: contain;
+    display: block;
+    border-radius: 50%;
+}
+
+.mic-shadow {
+    width: min(400px, 80vw);
+    height: min(400px, 80vw);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 100%;
+    z-index: 1;
+    box-shadow: 
+        10px -55px 30px 15px #823ca6, 
+        24px -10px 47px 10px #aab3d2, 
+        -21px -25px 97px 10px #5acee3, 
+        51px 5px 17px 10px #1b7d8f, 
+        3px 2px 77px 10px #f30bf5;
+    animation: shadow-rotate 1.5s linear infinite;
+    transform-origin: center;
+}
+
+/* Responsive adjustments for vertical/portrait displays */
+@media (orientation: portrait) {
+    .finger-count {
+        bottom: 5vh;
+        font-size: clamp(28px, 8vw, 44px);
+    }
+    
+    .mic {
+        width: min(300px, 70vw);
+        height: min(300px, 70vw);
+    }
+    
+    .mic::before {
+        width: min(300px, 70vw);
+        height: min(300px, 70vw);
+    }
+    
+    .mic::after {
+        width: min(200px, 50vw);
+        height: min(200px, 50vw);
+    }
+    
+    .mic-shadow {
+        width: min(300px, 70vw);
+        height: min(300px, 70vw);
+    }
+}
+
+@media (max-width: 768px) {
+    .finger-count {
+        font-size: clamp(24px, 10vw, 40px);
+        bottom: 20px;
+    }
+    
+    .scan-complete {
+        font-size: clamp(20px, 8vw, 32px);
+    }
+}
+
+/* For very tall screens (vertical displays) */
+@media (min-height: 900px) and (orientation: portrait) {
+    .finger-count {
+        bottom: 8vh;
     }
 }
 
