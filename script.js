@@ -2,6 +2,7 @@ const canvas = document.getElementById('canvas');
 const c = canvas.getContext('2d');
 const fingerCountEl = document.getElementById('fingerCount');
 const scanCompleteEl = document.getElementById('scanComplete');
+const scanLineEl = document.getElementById('scanLine');
 
 let points = [];
 let scanningFingers = {};
@@ -161,9 +162,19 @@ function loop() {
             }
         }
         
+        // Start scanning line animation after all particles have faded in
+        setTimeout(() => {
+            if (scanLineEl) {
+                scanLineEl.classList.add('active');
+            }
+        }, (points.length - 1) * 100 + 800); // Wait for all particles to fade in
+        
         emittersActive = true;
     }
 
+    // Keep particles active - don't deactivate when fingers are lifted
+    // This ensures particles and scanning line persist on screen
+    /*
     // Deactivate emitters if condition fails (fingers lifted or progress reset)
     if (!allComplete && emittersActive) {
         for (const id in emitterContainers) {
@@ -180,6 +191,7 @@ function loop() {
         }
         emittersActive = false;
     }
+    */
 
     // If emitters are active, keep them positioned on the current points
     if (emittersActive) {
@@ -239,9 +251,17 @@ function clearHandler(e) {
     points = [];
     scanningFingers = {};
     scanProgress = {};
-    // destroy all emitters
-    for (const id in emitterContainers) {
-        destroyEmitter(id);
+    // Don't destroy emitters or scanning line if scan is complete
+    // This preserves particles and scanning animation after hands are lifted
+    if (!scanCompleteEl.classList.contains('visible')) {
+        // destroy all emitters only if scan not complete
+        for (const id in emitterContainers) {
+            destroyEmitter(id);
+        }
+        // Hide scanning line if scan not complete
+        if (scanLineEl) {
+            scanLineEl.classList.remove('active');
+        }
     }
     // cleanup pointer angles
     for (const k in pointerAngles) delete pointerAngles[k];
