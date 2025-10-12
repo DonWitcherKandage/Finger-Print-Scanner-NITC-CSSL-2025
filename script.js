@@ -209,8 +209,12 @@ function loop() {
         }
     }
 
-    // Keep scan-complete overlay hidden — particles serve as feedback
-    scanCompleteEl.classList.remove('active');
+    // Show scan-complete message when scan is finished, hide otherwise
+    if (scanCompleteEl.classList.contains('visible')) {
+        scanCompleteEl.classList.add('active');
+    } else {
+        scanCompleteEl.classList.remove('active');
+    }
 
     requestAnimationFrame(loop);
 }
@@ -275,6 +279,7 @@ function clearHandler(e) {
 function resetScan() {
     // Clear scan complete state
     scanCompleteEl.classList.remove('visible');
+    scanCompleteEl.classList.remove('active');
     
     // Reset emitter state
     emittersActive = false;
