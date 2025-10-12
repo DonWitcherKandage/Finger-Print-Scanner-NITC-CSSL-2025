@@ -99,6 +99,57 @@ canvas {
     opacity: 1;
 }
 
+/* Glowing scan completion light */
+.scan-glow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+        rgba(0, 255, 255, 0.8) 0%, 
+        rgba(0, 200, 255, 0.6) 30%, 
+        rgba(100, 200, 255, 0.4) 60%, 
+        rgba(255, 255, 255, 0.2) 80%, 
+        transparent 100%);
+    box-shadow: 
+        0 0 100px rgba(0, 255, 255, 0.8),
+        0 0 200px rgba(0, 200, 255, 0.6),
+        0 0 300px rgba(100, 200, 255, 0.4);
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 1.2s ease-out;
+}
+
+.scan-glow.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.scan-glow.pulse {
+    animation: glow-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow-pulse {
+    from {
+        box-shadow: 
+            0 0 100px rgba(0, 255, 255, 0.8),
+            0 0 200px rgba(0, 200, 255, 0.6),
+            0 0 300px rgba(100, 200, 255, 0.4);
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        box-shadow: 
+            0 0 150px rgba(0, 255, 255, 1),
+            0 0 250px rgba(0, 200, 255, 0.8),
+            0 0 350px rgba(100, 200, 255, 0.6);
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
 /* Particles.js emitters root */
 #particle-emitters {
     position: fixed;

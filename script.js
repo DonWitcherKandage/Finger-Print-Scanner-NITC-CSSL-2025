@@ -2,6 +2,7 @@ const canvas = document.getElementById('canvas');
 const c = canvas.getContext('2d');
 const fingerCountEl = document.getElementById('fingerCount');
 const scanCompleteEl = document.getElementById('scanComplete');
+const scanGlowEl = document.getElementById('scanGlow');
 
 let points = [];
 let scanningFingers = {};
@@ -160,11 +161,30 @@ function loop() {
                 }, i * 100); // 100ms delay between each emitter
             }
         }
+        
+        // Trigger the center glow effect after all particles have faded in
+        setTimeout(() => {
+            if (scanGlowEl) {
+                scanGlowEl.classList.add('active');
+                // Add pulsing effect after initial glow appears
+                setTimeout(() => {
+                    if (scanGlowEl.classList.contains('active')) {
+                        scanGlowEl.classList.add('pulse');
+                    }
+                }, 1200); // After the initial scale-in completes
+            }
+        }, (points.length - 1) * 100 + 800); // Wait for all particles + fade-in duration
+        
         emittersActive = true;
     }
 
     // Deactivate emitters if condition fails (fingers lifted or progress reset)
     if (!allComplete && emittersActive) {
+        // Remove glow effect immediately
+        if (scanGlowEl) {
+            scanGlowEl.classList.remove('active', 'pulse');
+        }
+        
         for (const id in emitterContainers) {
             const emitter = emitterContainers[id];
             if (emitter && emitter.el) {
