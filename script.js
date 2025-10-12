@@ -145,6 +145,9 @@ function loop() {
 
     // Activate emitters once (rising edge) when all five fingers complete
     if (allComplete && !emittersActive) {
+        // Mark scan as complete for persistence logic
+        scanCompleteEl.classList.add('visible');
+        
         for (let i = 0; i < points.length; i++) {
             const t = points[i];
             const id = t.identifier || 0;
@@ -267,6 +270,53 @@ function clearHandler(e) {
     // cleanup pointer angles
     for (const k in pointerAngles) delete pointerAngles[k];
 }
+
+// Reset function to make the scan repeatable
+function resetScan() {
+    // Clear scan complete state
+    scanCompleteEl.classList.remove('visible');
+    
+    // Reset emitter state
+    emittersActive = false;
+    
+    // Clear all particles
+    for (const id in emitterContainers) {
+        destroyEmitter(id);
+    }
+    
+    // Hide scanning line
+    if (scanLineEl) {
+        scanLineEl.classList.remove('active');
+    }
+    
+    // Reset all tracking variables
+    points = [];
+    scanningFingers = {};
+    scanProgress = {};
+    for (const k in pointerAngles) delete pointerAngles[k];
+}
+
+// Add double-tap detection for reset
+let lastTapTime = 0;
+document.addEventListener('click', (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTapTime;
+    
+    // Double tap within 500ms resets the scan
+    if (tapLength < 500 && tapLength > 0) {
+        resetScan();
+        e.preventDefault();
+    }
+    lastTapTime = currentTime;
+});
+
+// Add keyboard shortcut for reset (R key or Space)
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r' || e.key === 'R' || e.key === ' ') {
+        resetScan();
+        e.preventDefault();
+    }
+});
 
 function createEmitterForId(id) {
     // create container
