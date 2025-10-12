@@ -164,14 +164,19 @@ function loop() {
         
         // Trigger the center glow effect after all particles have faded in
         setTimeout(() => {
+            console.log('Activating glow effect'); // Debug log
             if (scanGlowEl) {
                 scanGlowEl.classList.add('active');
+                console.log('Glow element found and activated'); // Debug log
                 // Add pulsing effect after initial glow appears
                 setTimeout(() => {
                     if (scanGlowEl.classList.contains('active')) {
                         scanGlowEl.classList.add('pulse');
+                        console.log('Pulse effect added'); // Debug log
                     }
-                }, 1200); // After the initial scale-in completes
+                }, 1500); // After the initial scale-in completes
+            } else {
+                console.log('Glow element not found!'); // Debug log
             }
         }, (points.length - 1) * 100 + 800); // Wait for all particles + fade-in duration
         
