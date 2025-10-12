@@ -110,12 +110,19 @@ canvas {
     z-index: 6; /* above canvas but below HUD if needed */
 }
 
+ /*partical emitter*/
 .emitter-container {
     position: absolute;
     width: 220px;
     height: 220px;
     transform: translate(-50%, -50%);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+.emitter-container.fade-in {
+    opacity: 1;
 }
 
 /* Access button overlay */

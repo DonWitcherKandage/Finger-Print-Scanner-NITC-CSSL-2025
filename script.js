@@ -152,6 +152,12 @@ function loop() {
             if (emitter && emitter.el) {
                 emitter.el.style.left = `${t.clientX}px`;
                 emitter.el.style.top = `${t.clientY}px`;
+                // Add smooth fade-in with slight delay for each emitter
+                setTimeout(() => {
+                    if (emitter.el) {
+                        emitter.el.classList.add('fade-in');
+                    }
+                }, i * 100); // 100ms delay between each emitter
             }
         }
         emittersActive = true;
@@ -160,7 +166,16 @@ function loop() {
     // Deactivate emitters if condition fails (fingers lifted or progress reset)
     if (!allComplete && emittersActive) {
         for (const id in emitterContainers) {
-            destroyEmitter(id);
+            const emitter = emitterContainers[id];
+            if (emitter && emitter.el) {
+                // Fade out smoothly before destroying
+                emitter.el.classList.remove('fade-in');
+                setTimeout(() => {
+                    destroyEmitter(id);
+                }, 300); // Wait for fade-out to complete
+            } else {
+                destroyEmitter(id);
+            }
         }
         emittersActive = false;
     }
