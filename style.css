@@ -344,10 +344,10 @@ canvas {
     display: block;
     border-radius: 50%;
 }
-
+/*rotating shadow*/
 .mic-shadow {
-    width: min(100px, 80vw);
-    height: min(100px, 80vw);
+    width: min(400px, 80vw);
+    height: min(400px, 80vw);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -355,11 +355,11 @@ canvas {
     border-radius: 100%;
     z-index: 1;
     box-shadow: 
-        10px -55px 30px 15px #3c68a6, 
-        24px -10px 47px 10px #aab3d2, 
-        -21px -25px 97px 10px #5acee3, 
-        51px 5px 17px 10px #1b788f, 
-        3px 2px 77px 10px #0cebff;
+        5px -10px 10px 15px #3c68a6,
+        5px -5px 4px 2px #ffffff, 
+        -5px -10px 20px 5px #5acee3,
+        5px 5px 7px 10px #1b788f, 
+        3px 2px 10px 20px #0cebff;
     animation: shadow-rotate 1.5s linear infinite;
     transform-origin: center;
 }
