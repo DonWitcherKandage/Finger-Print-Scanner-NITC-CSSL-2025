@@ -45,15 +45,17 @@ pointerImg.addEventListener('load', () => {
         if (found) {
             pointerVisibleCenter.x = (minX + maxX) / 2;
             pointerVisibleCenter.y = (minY + maxY) / 2;
+            // Manual adjustment: move the center point down slightly to better align with finger
+            pointerVisibleCenter.y += 8; // Adjust this value as needed
         } else {
             // fallback to geometric center
             pointerVisibleCenter.x = pointerNatural.w / 2;
-            pointerVisibleCenter.y = pointerNatural.h / 2;
+            pointerVisibleCenter.y = pointerNatural.h / 2 + 8; // Also adjust fallback
         }
     } catch (err) {
         // reading image data can fail in some browser security contexts; fallback to center
         pointerVisibleCenter.x = pointerImg.width / 2;
-        pointerVisibleCenter.y = pointerImg.height / 2;
+        pointerVisibleCenter.y = pointerImg.height / 2 + 8; // Manual adjustment for finger centering
     }
 });
 
