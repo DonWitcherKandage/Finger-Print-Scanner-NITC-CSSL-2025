@@ -7,6 +7,8 @@ let points = [];
 let scanningFingers = {};
 let scanProgress = {};
 let scanComplete = false; // Track scan completion state
+let twoFingerStartTime = null; // Track when 2+ fingers started
+const TWO_FINGER_DELAY = 1500; // 1.5 second delay for natural feel
 // pointer image for finger markers
 const pointerImg = new Image();
 pointerImg.src = 'Images/Asset 3.png';
@@ -131,8 +133,14 @@ function loop() {
     fingerCountEl.textContent = `${points.length}/5`;
     fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#00ffff';
 
+    // Track timing for 2+ finger activation
+    if (points.length >= 2 && twoFingerStartTime === null) {
+        twoFingerStartTime = Date.now();
+    } else if (points.length < 2) {
+        twoFingerStartTime = null;
+    }
 
-    // Check if all five fingers present and fully scanned
+    // Check if all five fingers present and fully scanned (immediate activation)
     let allComplete = false;
     if (points.length === 5) {
         allComplete = true;
@@ -145,8 +153,17 @@ function loop() {
         }
     }
 
-    // Activate emitters once (rising edge) when all five fingers complete
-    if (allComplete && !emittersActive) {
+    // Check for 2+ finger delayed activation (fallback activation)
+    let twoFingerDelayComplete = false;
+    if (points.length >= 2 && twoFingerStartTime !== null && !emittersActive) {
+        const timeElapsed = Date.now() - twoFingerStartTime;
+        if (timeElapsed >= TWO_FINGER_DELAY) {
+            twoFingerDelayComplete = true;
+        }
+    }
+
+    // Activate emitters when either condition is met: 5-finger complete OR 2+ finger delay
+    if ((allComplete || twoFingerDelayComplete) && !emittersActive) {
         // Mark scan as complete for persistence logic
         scanComplete = true;
         
@@ -277,6 +294,9 @@ function resetScan() {
     
     // Reset emitter state
     emittersActive = false;
+    
+    // Reset timing state
+    twoFingerStartTime = null;
     
     // Clear all particles
     for (const id in emitterContainers) {
