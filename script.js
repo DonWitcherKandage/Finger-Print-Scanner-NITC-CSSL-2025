@@ -1,12 +1,12 @@
 const canvas = document.getElementById('canvas');
 const c = canvas.getContext('2d');
 const fingerCountEl = document.getElementById('fingerCount');
-const scanCompleteEl = document.getElementById('scanComplete');
 const scanLineEl = document.getElementById('scanLine');
 
 let points = [];
 let scanningFingers = {};
 let scanProgress = {};
+let scanComplete = false; // Track scan completion state
 // pointer image for finger markers
 const pointerImg = new Image();
 pointerImg.src = 'Images/Asset 3.png';
@@ -146,7 +146,7 @@ function loop() {
     // Activate emitters once (rising edge) when all five fingers complete
     if (allComplete && !emittersActive) {
         // Mark scan as complete for persistence logic
-        scanCompleteEl.classList.add('visible');
+        scanComplete = true;
         
         for (let i = 0; i < points.length; i++) {
             const t = points[i];
@@ -197,7 +197,7 @@ function loop() {
     */
 
     // If emitters are active, keep them positioned on the current points
-    if (emittersActive) {
+     if (emittersActive) {
         for (let i = 0; i < points.length; i++) {
             const t = points[i];
             const id = t.identifier || 0;
@@ -207,13 +207,6 @@ function loop() {
                 emitter.el.style.top = `${t.clientY}px`;
             }
         }
-    }
-
-    // Show scan-complete message when scan is finished, hide otherwise
-    if (scanCompleteEl.classList.contains('visible')) {
-        scanCompleteEl.classList.add('active');
-    } else {
-        scanCompleteEl.classList.remove('active');
     }
 
     requestAnimationFrame(loop);
@@ -239,7 +232,7 @@ function positionHandler(e) {
                 delete scanProgress[id];
                 // Only destroy emitter if scan is not complete
                 // This preserves particles after 5-finger scan completion
-                if (emitterContainers[id] && !scanCompleteEl.classList.contains('visible')) {
+                if (emitterContainers[id] && !scanComplete) {
                     destroyEmitter(id);
                 }
                 // cleanup pointer angle
@@ -261,7 +254,7 @@ function clearHandler(e) {
     scanProgress = {};
     // Don't destroy emitters or scanning line if scan is complete
     // This preserves particles and scanning animation after hands are lifted
-    if (!scanCompleteEl.classList.contains('visible')) {
+    if (!scanComplete) {
         // destroy all emitters only if scan not complete
         for (const id in emitterContainers) {
             destroyEmitter(id);
@@ -278,8 +271,7 @@ function clearHandler(e) {
 // Reset function to make the scan repeatable
 function resetScan() {
     // Clear scan complete state
-    scanCompleteEl.classList.remove('visible');
-    scanCompleteEl.classList.remove('active');
+    scanComplete = false;
     
     // Reset emitter state
     emittersActive = false;

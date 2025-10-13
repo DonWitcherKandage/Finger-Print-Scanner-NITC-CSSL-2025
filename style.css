@@ -80,7 +80,7 @@ canvas {
     z-index: 10;
 }
 
-.scan-complete {
+/* .scan-complete {
     position: fixed;
     align-items: center;
     top: 50%;
@@ -98,7 +98,7 @@ canvas {
 .scan-complete.active {
     opacity: 1;
 }
-
+*/
 /* Horizontal scanning line animation */
 .scan-line {
     position: fixed;
