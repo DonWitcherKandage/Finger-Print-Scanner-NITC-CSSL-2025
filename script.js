@@ -1,6 +1,5 @@
 const canvas = document.getElementById('canvas');
 const c = canvas.getContext('2d');
-const fingerCountEl = document.getElementById('fingerCount');
 const scanLineEl = document.getElementById('scanLine');
 
 let points = [];
@@ -8,7 +7,7 @@ let scanningFingers = {};
 let scanProgress = {};
 let scanComplete = false; // Track scan completion state
 let twoFingerStartTime = null; // Track when 2+ fingers started
-const TWO_FINGER_DELAY = 1500; // 1.5 second delay for natural feel
+const TWO_FINGER_DELAY = 800; // 0.8 second delay for responsive feel
 // pointer image for finger markers
 const pointerImg = new Image();
 pointerImg.src = 'Images/Asset 3.png';
@@ -128,10 +127,6 @@ function loop() {
         // increment angle slowly
         pointerAngles[identifier] = (pointerAngles[identifier] || 0) + 0.02;
     }
-
-    // Update finger count display
-    fingerCountEl.textContent = `${points.length}/5`;
-    fingerCountEl.style.color = points.length === 5 ? '#00ff00' : '#00ffff';
 
     // Track timing for 2+ finger activation
     if (points.length >= 2 && twoFingerStartTime === null) {
