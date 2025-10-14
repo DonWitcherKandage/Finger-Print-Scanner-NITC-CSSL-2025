@@ -189,7 +189,7 @@ function loop() {
             if (scanLineEl) {
                 scanLineEl.classList.add('active');
             }
-        }, (points.length - 1) * 100 + 800); // Wait for all particles to fade in
+        }, (points.length - 1) * 100 + 300); // Wait for all particles to fade in
         
         emittersActive = true;
     }
